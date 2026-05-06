@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Kamer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            border-bottom: 2px solid #34495e;
+            padding-bottom: 15px;
+        }
+
+        .cameras {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .camera-panel {
+            background: #34495e;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .camera-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #2c3e50;
+        }
+
+        .video-container {
+            background: #000;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        img {
+            width: 100%;
+            display: block;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            background: #3498db;
+            border: none;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-center {
+            background: #27ae60;
+        }
+
+        .btn-center:hover {
+            background: #229954;
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            background: #34495e;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .no-controls {
+            text-align: center;
+            padding: 20px;
+            color: #95a5a6;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .cameras {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>System Kamer</h1>
+
+        <div class="cameras">
+            <!-- Kamera Cyfrowa (CSI) -->
+            <div class="camera-panel">
+                <div class="camera-title">Kamera Cyfrowa</div>
+                <div class="video-container">
+                    <img src="/video_feed/digital" alt="Kamera Cyfrowa">
+                </div>
+                <div class="no-controls"></div>
+            </div>
+
+            <!-- Kamera Termowizyjna (Grabber) -->
+            <div class="camera-panel">
+                <div class="camera-title">Kamera Termowizyjna</div>
+                <div class="video-container">
+                    <img src="/video_feed/thermal" alt="Kamera Termowizyjna">
+                </div>
+                
+                <div class="controls">
+                    <button onclick="rotate('left')">Lewo</button>
+                    <button class="btn-center" onclick="center()">Wysrodkuj</button>
+                    <button onclick="rotate('right')">Prawo</button>
+                    <button onclick="rotate('up')">Gora</button>
+                    <div></div>
+                    <button onclick="rotate('down')">Dol</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="status">
+            Zalogowano
+        </div>
+    </div>
+
+    <script>
+        function rotate(direction) {
+            fetch('/rotate/' + direction)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        console.log('Obrocono:', direction);
+                    }
+                })
+                .catch(error => console.error('Blad:', error));
+        }
+
+        function center() {
+            fetch('/center')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        console.log('Wysrodkowano');
+                    }
+                })
+                .catch(error => console.error('Blad:', error));
+        }
+    </script>
+</body>
+</html>

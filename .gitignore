@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Flask
+instance/
+.webassets-cache
+
+# Logi
+*.log
+
+# Config
+config.py
+*.ini
+
+# YOLO models (duże pliki)
+*.pt
+yolov8*.pt
+yolov5*.pt
+
+# Temporary files
+*.tmp
+temp/
+.cache/
+
+# OS
+.DS_Store
+Thumbs.db

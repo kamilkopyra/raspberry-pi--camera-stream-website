@@ -1,0 +1,20 @@
+[Unit]
+Description=Camera Monitoring System
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/camera_system
+Environment="PATH=/home/pi/camera_system/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/usr/bin/python3 /home/pi/camera_system/app.py
+Restart=always
+RestartSec=10
+
+# Logi
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=camera-system
+
+[Install]
+WantedBy=multi-user.target

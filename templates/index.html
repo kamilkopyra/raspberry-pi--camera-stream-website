@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Kamer - Sterowanie</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .status-bar {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .cameras-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .camera-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .camera-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .camera-title {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .camera-position {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .video-container {
+            position: relative;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .video-feed {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .control-btn.center {
+            grid-column: 2;
+            background: rgba(76, 175, 80, 0.3);
+            border-color: rgba(76, 175, 80, 0.5);
+        }
+
+        .control-btn.center:hover {
+            background: rgba(76, 175, 80, 0.5);
+        }
+
+        .arrow {
+            font-size: 1.5em;
+        }
+
+        .info-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            margin-top: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .yolo-toggle {
+            background: rgba(255, 193, 7, 0.3);
+            border: 2px solid rgba(255, 193, 7, 0.5);
+            padding: 15px 30px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .yolo-toggle:hover {
+            background: rgba(255, 193, 7, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .yolo-toggle.active {
+            background: rgba(76, 175, 80, 0.5);
+            border-color: rgba(76, 175, 80, 0.7);
+        }
+
+        /* Dodatkowe style dla statusu zalogowania */
+        .status-bar > div:last-child {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            opacity: 0.7;
+            font-size: 0.9em;
+        }
+
+        /* Responsywność */
+        @media (max-width: 768px) {
+            .cameras-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .control-btn {
+                padding: 12px;
+                font-size: 0.9em;
+            }
+        }
+
+        /* Animacja ładowania */
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎥 System Monitoringu Kamer</h1>
+            <p>Kamera Termowizyjna + Kamera Cyfrowa</p>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span>System aktywny</span>
+            </div>
+            <div style="opacity: 0.7;">
+                <span>🔒 Zalogowano</span>
+            </div>
+        </div>
+
+        <div class="cameras-grid">
+            <!-- Kamera Termowizyjna -->
+            <div class="camera-panel">
+                <div class="camera-header">
+                    <div class="camera-title">🌡️ Kamera Termowizyjna</div>
+                    <div class="camera-position" id="thermal-position">Pozycja: 90°</div>
+                </div>
+                
+                <div class="video-container">
+                    <img src="/video_feed/thermal" class="video-feed" alt="Thermal Camera Feed">
+                    <div class="video-overlay">LIVE</div>
+                </div>
+
+                <div class="controls">
+                    <button class="control-btn" onclick="rotate('thermal', 'left')">
+                        <span class="arrow">←</span><br>Lewo
+                    </button>
+                    <button class="control-btn center" onclick="centerCamera('thermal')">
+                        ⊙<br>Wyśrodkuj
+                    </button>
+                    <button class="control-btn" onclick="rotate('thermal', 'right')">
+                        <span class="arrow">→</span><br>Prawo
+                    </button>
+                    <button class="control-btn" onclick="rotate('thermal', 'up')">
+                        <span class="arrow">↑</span><br>Góra
+                    </button>
+                    <div></div>
+                    <button class="control-btn" onclick="rotate('thermal', 'down')">
+                        <span class="arrow">↓</span><br>Dół
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kamera Cyfrowa -->
+            <div class="camera-panel">
+                <div class="camera-header">
+                    <div class="camera-title">📷 Kamera Cyfrowa</div>
+                    <div class="camera-position" id="digital-position">Pozycja: 90°</div>
+                </div>
+                
+                <div class="video-container">
+                    <img src="/video_feed/digital" class="video-feed" alt="Digital Camera Feed">
+                    <div class="video-overlay">LIVE</div>
+                </div>
+
+                <div class="controls">
+                    <button class="control-btn" onclick="rotate('digital', 'left')">
+                        <span class="arrow">←</span><br>Lewo
+                    </button>
+                    <button class="control-btn center" onclick="centerCamera('digital')">
+                        ⊙<br>Wyśrodkuj
+                    </button>
+                    <button class="control-btn" onclick="rotate('digital', 'right')">
+                        <span class="arrow">→</span><br>Prawo
+                    </button>
+                    <button class="control-btn" onclick="rotate('digital', 'up')">
+                        <span class="arrow">↑</span><br>Góra
+                    </button>
+                    <div></div>
+                    <button class="control-btn" onclick="rotate('digital', 'down')">
+                        <span class="arrow">↓</span><br>Dół
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <h3 style="margin-bottom: 15px;">📊 Informacje Systemowe</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Status Kamer</div>
+                    <div class="info-value" id="camera-status">✅ Obie aktywne</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Jakość Streamu</div>
+                    <div class="info-value">85% JPEG</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">FPS</div>
+                    <div class="info-value">~30 FPS</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Rozdzielczość</div>
+                    <div class="info-value">640x480</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>🎮 Sterowanie: W/A/S/D (termo) | Strzałki (cyfrowa) | SPACJA (wyśrodkuj)</p>
+            <p style="margin-top: 10px; opacity: 0.5;">System Kamer v1.0 | Made with Flask + OpenCV</p>
+        </footer>
+    </div>
+
+    <script>
+        // Funkcja obracania kamery
+        function rotate(cameraType, direction) {
+            fetch(`/rotate/${cameraType}/${direction}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        updatePosition(cameraType, data.position);
+                        console.log(`Obrócono ${cameraType} w kierunku ${direction}, pozycja: ${data.position}°`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Błąd podczas obracania:', error);
+                });
+        }
+
+        // Funkcja centrowania kamery
+        function centerCamera(cameraType) {
+            fetch(`/center/${cameraType}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        updatePosition(cameraType, data.position);
+                        console.log(`Wycentrowano ${cameraType}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Błąd podczas centrowania:', error);
+                });
+        }
+
+        // Aktualizacja wyświetlanej pozycji
+        function updatePosition(cameraType, position) {
+            const elementId = `${cameraType}-position`;
+            document.getElementById(elementId).textContent = `Pozycja: ${position}°`;
+        }
+
+        // Obsługa klawiszy klawiatury (opcjonalnie)
+        document.addEventListener('keydown', (e) => {
+            // Dla kamery termowizyjnej: W/A/S/D
+            if (e.key === 'a' || e.key === 'A') rotate('thermal', 'left');
+            if (e.key === 'd' || e.key === 'D') rotate('thermal', 'right');
+            if (e.key === 'w' || e.key === 'W') rotate('thermal', 'up');
+            if (e.key === 's' || e.key === 'S') rotate('thermal', 'down');
+            
+            // Dla kamery cyfrowej: strzałki
+            if (e.key === 'ArrowLeft') rotate('digital', 'left');
+            if (e.key === 'ArrowRight') rotate('digital', 'right');
+            if (e.key === 'ArrowUp') rotate('digital', 'up');
+            if (e.key === 'ArrowDown') rotate('digital', 'down');
+            
+            // Centrowanie: spacja
+            if (e.key === ' ') {
+                e.preventDefault();
+                centerCamera('thermal');
+                centerCamera('digital');
+            }
+        });
+
+        // Sprawdzanie statusu co 5 sekund
+        setInterval(() => {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Status:', data);
+                    // Możesz tutaj zaktualizować UI na podstawie statusu
+                })
+                .catch(error => {
+                    console.error('Błąd podczas pobierania statusu:', error);
+                });
+        }, 5000);
+
+        console.log('✅ System kamer załadowany');
+        console.log('🎮 Sterowanie klawiaturą:');
+        console.log('   Kamera termowizyjna: W/A/S/D');
+        console.log('   Kamera cyfrowa: strzałki');
+        console.log('   Wyśrodkuj obie: SPACJA');
+    </script>
+</body>
+</html>
