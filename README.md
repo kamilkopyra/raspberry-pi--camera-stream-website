@@ -1,3 +1,6 @@
+Strona działa za pomocą flask.
+http://172.20.10.11:5000
+
 do poprawnego działania programu:
 
 git clone https://github.com/AntoniTrzebuniak/SCServo_raspbi
