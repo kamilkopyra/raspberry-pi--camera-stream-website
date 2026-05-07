@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 System 2 kamer: CSI (Picamera2) + USB Grabber (OpenCV)
-Sterowanie serwami SCServo - UŻYWA BIBLIOTEKI I LOGIKI ANTONIEGO
+
 """
 
 from flask import Flask, Response, render_template, jsonify
@@ -16,16 +16,9 @@ import threading
 import time
 import sys
 import numpy as np
+from flask import request
+import subprocess
 
-# Import BIBLIOTEKI ANTONIEGO
-sys.path.insert(0, './SCServo_raspbi/SCServo_Python')
-try:
-    import SCServo_Linux as SCServo
-    SCSERVO_AVAILABLE = True
-    print("[OK] SCServo_Linux imported")
-except ImportError as e:
-    SCSERVO_AVAILABLE = False
-    print(f"[WARNING] SCServo_Linux not available: {e}")
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
@@ -42,8 +35,22 @@ def verify_password(username, password):
         return username
     return None
 
+@app.route('/move') # Usunęliśmy <key> z adresu
+def move():
+    # Pobieramy wartość 'key' z parametrów URL (?key=w)
+    key = request.args.get('key')
+    
+    if key:
+        print(f"Otrzymano klawisz: {key}")
+        # Wywołujemy binarkę C++
+        subprocess.run(["sudo", "./servo_exec", key])
+        return "OK", 200
+    
+    return "Brak klawisza", 400
+
+
 # Kamera grabber (termowizyjna)
-GRABBER_CAMERA_ID = 1  # <-- SPRAWDŹ v4l2-ctl --list-devices
+GRABBER_CAMERA_ID = 0  # <-- SPRAWDŹ v4l2-ctl --list-devices
 
 # Konfiguracja ID serw (Z KODU C++ ANTONIEGO)
 ID_X = 2  # Servo X (poziom)
@@ -128,21 +135,7 @@ if cap_usb.isOpened():
 else:
     print("[WARNING] Kamera USB niedostepna")
 
-# Inicjalizacja serw (UŻYWA BIBLIOTEKI ANTONIEGO)
-if SCSERVO_AVAILABLE:
-    try:
-        # DOKŁADNIE JAK W JEGO PRZYKŁADACH
-        sms_sts = SCServo.sms_sts("/dev/ttyAMA0", 115200)
-        if sms_sts:
-            print("[OK] SCServo port otwarty (115200 baud)")
-            # Ustawienie początkowe (środek)
-            aktualizujSerwa()
-            time.sleep(0.5)
-        else:
-            print("[ERROR] Nie udalo sie otworzyc portu /dev/ttyAMA0")
-    except Exception as e:
-        print(f"[ERROR] SCServo init failed: {e}")
-        sms_sts = None
+
 
 # ============= GENERATORY STRUMIENI =============
 

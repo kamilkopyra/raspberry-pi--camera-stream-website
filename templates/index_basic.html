@@ -147,12 +147,11 @@
                 </div>
                 
                 <div class="controls">
-                    <button onclick="rotate('left')">Lewo</button>
-                    <button class="btn-center" onclick="center()">Wysrodkuj</button>
-                    <button onclick="rotate('right')">Prawo</button>
-                    <button onclick="rotate('up')">Gora</button>
-                    <div></div>
-                    <button onclick="rotate('down')">Dol</button>
+                     <button onclick="move('w')" style="grid-column: 2;">▲</button>
+                    <button onclick="move('a')" style="grid-column: 1;">◀</button>
+                    <button onclick="move(' ')" style="grid-column: 2;">■</button>
+                    <button onclick="move('d')" style="grid-column: 3;">▶</button>
+                    <button onclick="move('s')" style="grid-column: 2;">▼</button>
                 </div>
             </div>
         </div>
@@ -183,6 +182,11 @@
                     }
                 })
                 .catch(error => console.error('Blad:', error));
+        }
+    </script>
+     <script>
+        function move(key) {
+            fetch(`/move?key=${encodeURIComponent(key)}`);
         }
     </script>
 </body>
