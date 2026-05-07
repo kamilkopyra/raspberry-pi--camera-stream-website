@@ -5,8 +5,6 @@ System 2 kamer: CSI (Picamera2) + USB Grabber (OpenCV)
 """
 
 from flask import Flask, Response, render_template, jsonify
-from flask_httpauth import HTTPBasicAuth
-from werkzeug.security import generate_password_hash, check_password_hash
 from picamera2 import Picamera2
 from picamera2.encoders import JpegEncoder
 from picamera2.outputs import FileOutput
@@ -20,17 +18,6 @@ import subprocess
 
 
 app = Flask(__name__)
-auth = HTTPBasicAuth()
-
-users = {
-    "admin": generate_password_hash("admin123"),
-}
-
-@auth.verify_password
-def verify_password(username, password):
-    if username in users and check_password_hash(users.get(username), password):
-        return username
-    return None
 
 @app.route('/move') # Usunęliśmy <key> z adresu
 def move():
@@ -112,18 +99,18 @@ def generate_usb():
 # ============= ROUTING =============
 
 @app.route('/')
-@auth.login_required
+
 def index():
     return render_template('index_basic.html')
 
 @app.route('/video_feed/digital')
-@auth.login_required
+
 def video_feed_digital():
     return Response(generate_csi(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/video_feed/thermal')
-@auth.login_required
+
 def video_feed_thermal():
     return Response(generate_usb(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
