@@ -160,30 +160,6 @@
             Zalogowano
         </div>
     </div>
-
-    <script>
-        function rotate(direction) {
-            fetch('/rotate/' + direction)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'ok') {
-                        console.log('Obrocono:', direction);
-                    }
-                })
-                .catch(error => console.error('Blad:', error));
-        }
-
-        function center() {
-            fetch('/center')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'ok') {
-                        console.log('Wysrodkowano');
-                    }
-                })
-                .catch(error => console.error('Blad:', error));
-        }
-    </script>
      <script>
         function move(key) {
             fetch(`/move?key=${encodeURIComponent(key)}`);

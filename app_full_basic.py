@@ -14,7 +14,6 @@ import cv2
 import io
 import threading
 import time
-import sys
 import numpy as np
 from flask import request
 import subprocess
@@ -22,8 +21,6 @@ import subprocess
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
-
-# ============= KONFIGURACJA (Z KODU C++ ANTONIEGO) =============
 
 users = {
     "admin": generate_password_hash("admin123"),
@@ -52,56 +49,6 @@ def move():
 # Kamera grabber (termowizyjna)
 GRABBER_CAMERA_ID = 0  # <-- SPRAWDŹ v4l2-ctl --list-devices
 
-# Konfiguracja ID serw (Z KODU C++ ANTONIEGO)
-ID_X = 2  # Servo X (poziom)
-ID_Y = 1  # Servo Y (pion)
-
-# Krok obrotu w stopniach (Z KODU C++ ANTONIEGO)
-KROK = 1.0
-
-# Aktualne pozycje w stopniach - zaczynamy od środka (Z KODU C++)
-posX = 0.0
-posY = 0.0
-
-# Limity (Z KODU C++ - w funkcji aktualizujSerwa są sprawdzane)
-# W pętli głównej C++:
-# if (posX < -90) posX = -90;
-# if (posX > 90)  posX = 90;
-# if (posY < -72) posY = -72;
-# if (posY > 30)  posY = 30;
-
-# Handler serw
-sms_sts = None
-
-# ============= FUNKCJA deg2sig (Z KODU C++ ANTONIEGO) =============
-
-def deg2sig(stopnie, servo_id):
-    """
-    Konwersja stopni na sygnał serwa
-    DOKŁADNA KOPIA z kodu C++ Antoniego
-    """
-    if servo_id == 1:
-        return int(round(540 + (stopnie * (1023.0 / 300.0))))
-    elif servo_id == 2:
-        return int(round(475 + (stopnie * (1023.0 / 300.0))))
-    return 512
-
-# ============= FUNKCJA aktualizujSerwa (Z KODU C++ ANTONIEGO) =============
-
-def aktualizujSerwa():
-    """
-    Aktualizacja pozycji serw
-    DOKŁADNA KOPIA logiki z C++ Antoniego
-    """
-    if sms_sts:
-        try:
-            sms_sts.WritePos(ID_X, deg2sig(posX, ID_X), 0, 1500)
-            sms_sts.WritePos(ID_Y, deg2sig(posY, ID_Y), 0, 1500)
-            print(f"Pozycja -> X: {posX:.1f} | Y: {posY:.1f}")
-        except Exception as e:
-            print(f"[ERROR] Servo update failed: {e}")
-    else:
-        print(f"[SIMULATION] X: {posX:.1f} | Y: {posY:.1f}")
 
 # ============= INICJALIZACJA KAMER =============
 
@@ -181,65 +128,6 @@ def video_feed_thermal():
     return Response(generate_usb(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/rotate/<direction>')
-@auth.login_required
-def rotate(direction):
-    """
-    Sterowanie serwami - LOGIKA Z KODU C++ ANTONIEGO
-    case 'w': posY += KROK; break;
-    case 's': posY -= KROK; break;
-    case 'a': posX -= KROK; break;
-    case 'd': posX += KROK; break;
-    """
-    global posX, posY
-    
-    if direction == 'left':     # A
-        posX -= KROK
-    elif direction == 'right':  # D
-        posX += KROK
-    elif direction == 'up':     # W
-        posY += KROK
-    elif direction == 'down':   # S
-        posY -= KROK
-    else:
-        return jsonify({'error': 'Invalid direction'}), 400
-    
-    # Nałóż ograniczenia (Z KODU C++)
-    if posX < -90:
-        posX = -90
-    if posX > 90:
-        posX = 90
-    if posY < -72:
-        posY = -72
-    if posY > 30:
-        posY = 30
-    
-    # Aktualizuj serwa
-    aktualizujSerwa()
-    
-    return jsonify({
-        'status': 'ok',
-        'direction': direction,
-        'position': {'x': posX, 'y': posY}
-    })
-
-@app.route('/center')
-@auth.login_required
-def center():
-    """
-    Wyśrodkuj serwa - LOGIKA Z KODU C++
-    case ' ': posX = 0; posY = 0; break;
-    """
-    global posX, posY
-    
-    posX = 0.0
-    posY = 0.0
-    aktualizujSerwa()
-    
-    return jsonify({
-        'status': 'ok',
-        'position': {'x': posX, 'y': posY}
-    })
 
 # ============= MAIN =============
 
@@ -259,5 +147,3 @@ if __name__ == '__main__':
         picam.stop_recording()
         picam.close()
         cap_usb.release()
-        if sms_sts:
-            sms_sts.end()
